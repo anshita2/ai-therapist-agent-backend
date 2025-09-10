@@ -270,3 +270,17 @@ export const getChatHistory = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching chat history" });
   }
 };
+
+export const getAllSessions = async (req: Request, res: Response) => {
+  try {
+    const userId = new Types.ObjectId(req.user.id);
+    const sessions = await ChatSession.find({ userId })
+      .sort({ updatedAt: -1 })
+      .exec();
+
+    res.json(sessions);
+  } catch (error) {
+    console.error("Error fetching all sessions:", error);
+    res.status(500).json({ error: "Failed to fetch sessions" });
+  }
+};
