@@ -55,3 +55,31 @@ export const logActivity = async (
     next(error);
   }
 };
+
+export const getTodayActivities = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const activities = await Activity.find({
+      userId,
+      timestamp: { $gte: startOfDay, $lte: endOfDay },
+    });
+
+    res.json({activities });
+  } catch (error) {
+    next(error);
+  }
+};
