@@ -69,3 +69,51 @@ res.status(201).json({ success: true, avgMoodScore });
     next(error);
   }
 };
+
+// Get today's average mood for a user
+export const getTodaysAverageMood = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const now = new Date();
+
+    const startOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    const endOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+
+    const moodsToday = await Mood.find({
+      userId,
+      timestamp: { $gte: startOfDay, $lte: endOfDay },
+    });
+
+    const avgMood =
+      moodsToday.length > 0
+        ? moodsToday.reduce((acc, mood) => acc + mood.score, 0) /
+          moodsToday.length
+        : null;
+
+    res.status(200).json({ averageMood: avgMood });
+  } catch (error) {
+    next(error);
+  }
+};
