@@ -38,11 +38,33 @@ export const createMood = async (
     //   activities,
     //   timestamp: mood.timestamp,
     // });
+const now = new Date();
 
-    res.status(201).json({
-      success: true,
-      data: mood,
-    });
+// Start of today (00:00:00)
+const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+// End of today (23:59:59.999)
+const endOfDay = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate(),
+  23,
+  59,
+  59,
+  999
+);
+
+    const moodsToday = await Mood.find({
+  userId,
+  timestamp: { $gte: startOfDay, $lte: endOfDay },
+});
+
+// Include the new score in average calculation
+const total = moodsToday.reduce((acc, m) => acc + m.score, 0) + score;
+const avgMoodScore = total / (moodsToday.length + 1);
+
+res.status(201).json({ success: true, avgMoodScore });
+
   } catch (error) {
     next(error);
   }
